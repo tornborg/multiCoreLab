@@ -177,7 +177,6 @@ class Dataflow {
 		long			end;
 
 		System.out.println("computing liveness...");
-
 		begin = System.nanoTime();
 		worklist = new LinkedList<Vertex>();
 
@@ -207,15 +206,23 @@ class Dataflow {
 		boolean	print;
 		Vertex	vertex[];
 		Random	r;
+			
 
 		r = new Random(1);
 
-		nsym = Integer.parseInt(args[0]);
-		nvertex = Integer.parseInt(args[1]);
-		maxsucc = Integer.parseInt(args[2]);
-		nactive = Integer.parseInt(args[3]);
-		nthread = Integer.parseInt(args[4]);
-		print = Integer.parseInt(args[5]) != 0;
+//		nsym = Integer.parseInt(args[0]);
+//		nvertex = Integer.parseInt(args[1]);
+//		maxsucc = Integer.parseInt(args[2]);
+//		nactive = Integer.parseInt(args[3]);
+//		nthread = Integer.parseInt(args[4]);
+//		print = Integer.parseInt(args[5]) != 0;
+		
+		nsym = 10000;
+		nvertex = 1000;
+		maxsucc = 4;
+		nactive = 100;
+		nthread = 4;
+		print = 0 != 0 ; 
 	
 		System.out.println("nsym = " + nsym);
 		System.out.println("nvertex = " + nvertex);
