@@ -1,4 +1,4 @@
-package handouts;
+
 
 import java.util.Iterator;
 import java.util.ListIterator;
@@ -44,7 +44,7 @@ class Vertex {
 		use	= new BitSet();
 		def	= new BitSet();
 	}
-
+	
 	void computeIn(LinkedList<Vertex> worklist)
 	{
 		int			i;
@@ -112,7 +112,7 @@ class Vertex {
 }
 
 class Dataflow {
-
+	
 	public static void connect(Vertex pred, Vertex succ)
 	{
 		pred.succ.addLast(succ);
@@ -175,25 +175,66 @@ class Dataflow {
 		LinkedList<Vertex>	worklist;
 		long			begin;
 		long			end;
+		worklist = new LinkedList<Vertex>();
+				
+		Thread remThread = new Thread(){
+			public void run() {
+				removeWork(worklist);
+				
+			}
+			
+			private synchronized void removeWork(LinkedList<Vertex> worklist) {
+				Vertex u;
+				while(worklist.isEmpty()){
+					try {
+						wait();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				u = worklist.remove();
+				u.listed=false;
+			}
+		};
+		
+		Thread comThread = new Thread() {
+			public void run() {
+				u.computeIn(worklist);
+			}
+		};
 
 		System.out.println("computing liveness...");
+		
 		begin = System.nanoTime();
-		worklist = new LinkedList<Vertex>();
-
 		for (i = 0; i < vertex.length; ++i) {
 			worklist.addLast(vertex[i]);
 			vertex[i].listed = true;
+}
+		//run thread
+		remThread.start();
+		remThread.run();
+		comThread.start();
+		comThread.run();
+		
+		for (i = 0; i < vertex.length; ++i) {
+			//Thread 1
+			//add
 		}
-
+		
+		
 		while (!worklist.isEmpty()) {
-			u = worklist.remove();
-			u.listed = false;
-			u.computeIn(worklist);
+			//Thread 2
+			//remove
+			//Thread 3
+			//compute
 		}
 		end = System.nanoTime();
 
 		System.out.println("T = " + (end-begin)/1e9 + " s");
 	}
+
+
+
 
 	public static void main(String[] args)
 	{
@@ -210,19 +251,19 @@ class Dataflow {
 
 		r = new Random(1);
 
-//		nsym = Integer.parseInt(args[0]);
-//		nvertex = Integer.parseInt(args[1]);
-//		maxsucc = Integer.parseInt(args[2]);
-//		nactive = Integer.parseInt(args[3]);
-//		nthread = Integer.parseInt(args[4]);
-//		print = Integer.parseInt(args[5]) != 0;
+		nsym = Integer.parseInt(args[0]);
+		nvertex = Integer.parseInt(args[1]);
+		maxsucc = Integer.parseInt(args[2]);
+		nactive = Integer.parseInt(args[3]);
+		nthread = Integer.parseInt(args[4]);
+		print = Integer.parseInt(args[5]) != 0;
 		
-		nsym = 10000;
-		nvertex = 1000;
-		maxsucc = 4;
-		nactive = 100;
-		nthread = 4;
-		print = 0 != 0 ; 
+//		nsym = 10000;
+//		nvertex = 1000;
+//		maxsucc = 4;
+//		nactive = 100;
+//		nthread = 4;
+//		print = 0 != 0 ; 
 	
 		System.out.println("nsym = " + nsym);
 		System.out.println("nvertex = " + nvertex);
