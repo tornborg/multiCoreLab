@@ -176,30 +176,21 @@ class Dataflow {
 		long			begin;
 		long			end;
 		worklist = new LinkedList<Vertex>();
+		Monitor mon = new Monitor(worklist);
 				
 		Thread remThread = new Thread(){
 			public void run() {
-				removeWork(worklist);
-				
-			}
-			
-			private synchronized void removeWork(LinkedList<Vertex> worklist) {
-				Vertex u;
-				while(worklist.isEmpty()){
-					try {
-						wait();
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+				while(true){
+					mon.removeWork();
 				}
-				u = worklist.remove();
-				u.listed=false;
 			}
 		};
 		
 		Thread comThread = new Thread() {
 			public void run() {
-				u.computeIn(worklist);
+				while(true){
+					mon.callCompute();
+				}
 			}
 		};
 
