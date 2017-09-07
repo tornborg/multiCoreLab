@@ -1,22 +1,19 @@
 
-
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.LinkedList;
 import java.util.BitSet;
 
 class Random {
-	int	w;
-	int	z;
-	
-	public Random(int seed)
-	{
+	int w;
+	int z;
+
+	public Random(int seed) {
 		w = seed + 1;
 		z = seed * seed + seed + 2;
 	}
 
-	int nextInt()
-	{
+	int nextInt() {
 		z = 36969 * (z & 65535) + (z >> 16);
 		w = 18000 * (w & 65535) + (w >> 16);
 
@@ -25,32 +22,30 @@ class Random {
 }
 
 class Vertex {
-	int			index;
-	boolean			listed;
-	LinkedList<Vertex>	pred;
-	LinkedList<Vertex>	succ;
-	BitSet			in;
-	BitSet			out;
-	BitSet			use;
-	BitSet			def;
+	int index;
+	boolean listed;
+	LinkedList<Vertex> pred;
+	LinkedList<Vertex> succ;
+	BitSet in;
+	BitSet out;
+	BitSet use;
+	BitSet def;
 
-	Vertex(int i)
-	{
-		index	= i;
-		pred	= new LinkedList<Vertex>();
-		succ	= new LinkedList<Vertex>();
-		in	= new BitSet();
-		out	= new BitSet();
-		use	= new BitSet();
-		def	= new BitSet();
+	Vertex(int i) {
+		index = i;
+		pred = new LinkedList<Vertex>();
+		succ = new LinkedList<Vertex>();
+		in = new BitSet();
+		out = new BitSet();
+		use = new BitSet();
+		def = new BitSet();
 	}
-	
-	void computeIn(LinkedList<Vertex> worklist)
-	{
-		int			i;
-		BitSet			old;
-		Vertex			v;
-		ListIterator<Vertex>	iter;
+
+	void computeIn(LinkedList<Vertex> worklist) {
+		int i;
+		BitSet old;
+		Vertex v;
+		ListIterator<Vertex> iter;
 
 		iter = succ.listIterator();
 
@@ -64,8 +59,8 @@ class Vertex {
 		// in = use U (out - def)
 
 		in = new BitSet();
-		in.or(out);	
-		in.andNot(def);	
+		in.or(out);
+		in.andNot(def);
 		in.or(use);
 
 		if (!in.equals(old)) {
@@ -81,9 +76,8 @@ class Vertex {
 		}
 	}
 
-	public void print()
-	{
-		int	i;
+	public void print() {
+		int i;
 
 		System.out.print("use[" + index + "] = { ");
 		for (i = 0; i < use.size(); ++i)
@@ -112,25 +106,23 @@ class Vertex {
 }
 
 class Dataflow {
-	
-	public static void connect(Vertex pred, Vertex succ)
-	{
+
+	public static void connect(Vertex pred, Vertex succ) {
 		pred.succ.addLast(succ);
 		succ.pred.addLast(pred);
 	}
 
-	public static void generateCFG(Vertex vertex[], int maxsucc, Random r)
-	{
-		int	i;
-		int	j;
-		int	k;
-		int	s;	// number of successors of a vertex.
+	public static void generateCFG(Vertex vertex[], int maxsucc, Random r) {
+		int i;
+		int j;
+		int k;
+		int s; // number of successors of a vertex.
 
 		System.out.println("generating CFG...");
 
 		connect(vertex[0], vertex[1]);
 		connect(vertex[0], vertex[2]);
-		
+
 		for (i = 2; i < vertex.length; ++i) {
 			s = (r.nextInt() % maxsucc) + 1;
 			for (j = 0; j < s; ++j) {
@@ -140,15 +132,10 @@ class Dataflow {
 		}
 	}
 
-	public static void generateUseDef(	
-		Vertex	vertex[],
-		int	nsym,
-		int	nactive,
-		Random	r)
-	{
-		int	i;
-		int	j;
-		int	sym;
+	public static void generateUseDef(Vertex vertex[], int nsym, int nactive, Random r) {
+		int i;
+		int j;
+		int sym;
 
 		System.out.println("generating usedefs...");
 
@@ -167,95 +154,77 @@ class Dataflow {
 		}
 	}
 
-	public static void liveness(Vertex vertex[])
-	{
-		Vertex			u;
-		Vertex			v;
-		int			i;
-		LinkedList<Vertex>	worklist;
-		long			begin;
-		long			end;
+	public static void liveness(Vertex vertex[]) {
+		Vertex u;
+		Vertex v;
+		int i;
+		LinkedList<Vertex> worklist;
+		long begin;
+		long end;
 		worklist = new LinkedList<Vertex>();
 		Monitor mon = new Monitor(worklist);
-				
-		Thread remThread = new Thread(){
+
+		Thread remThread = new Thread() {
 			public void run() {
-				while(true){
+				while (true) {
 					mon.removeWork();
 				}
 			}
 		};
-		
+
 		Thread comThread = new Thread() {
 			public void run() {
-				while(true){
+				while (true) {
 					mon.callCompute();
 				}
 			}
 		};
 
 		System.out.println("computing liveness...");
-		
+
 		begin = System.nanoTime();
 		for (i = 0; i < vertex.length; ++i) {
 			worklist.addLast(vertex[i]);
 			vertex[i].listed = true;
-}
-		//run thread
+		}
+		// run thread
 		remThread.start();
 		remThread.run();
 		comThread.start();
 		comThread.run();
-		
-		for (i = 0; i < vertex.length; ++i) {
-			//Thread 1
-			//add
-		}
-		
-		
-		while (!worklist.isEmpty()) {
-			//Thread 2
-			//remove
-			//Thread 3
-			//compute
-		}
+
 		end = System.nanoTime();
 
-		System.out.println("T = " + (end-begin)/1e9 + " s");
+		System.out.println("T = " + (end - begin) / 1e9 + " s");
 	}
 
-
-
-
-	public static void main(String[] args)
-	{
-		int	i;
-		int	nsym;
-		int	nvertex;
-		int	maxsucc;
-		int	nactive;
-		int	nthread;
-		boolean	print;
-		Vertex	vertex[];
-		Random	r;
-			
+	public static void main(String[] args) {
+		int i;
+		int nsym;
+		int nvertex;
+		int maxsucc;
+		int nactive;
+		int nthread;
+		boolean print;
+		Vertex vertex[];
+		Random r;
 
 		r = new Random(1);
 
-		nsym = Integer.parseInt(args[0]);
-		nvertex = Integer.parseInt(args[1]);
-		maxsucc = Integer.parseInt(args[2]);
-		nactive = Integer.parseInt(args[3]);
-		nthread = Integer.parseInt(args[4]);
-		print = Integer.parseInt(args[5]) != 0;
-		
-//		nsym = 10000;
-//		nvertex = 1000;
-//		maxsucc = 4;
-//		nactive = 100;
-//		nthread = 4;
-//		print = 0 != 0 ; 
-	
+		// nsym = Integer.parseInt(args[0]);
+		// nvertex = Integer.parseInt(args[1]);
+		// maxsucc = Integer.parseInt(args[2]);
+		// nactive = Integer.parseInt(args[3]);
+		// nthread = Integer.parseInt(args[4]);
+		// print = Integer.parseInt(args[5]) != 0;
+
+		nsym = 10000;
+		nvertex = 1000;
+		maxsucc = 4;
+		nactive = 100;
+		nthread = 4;
+		print = 0 != 0;
+
 		System.out.println("nsym = " + nsym);
 		System.out.println("nvertex = " + nvertex);
 		System.out.println("maxsucc = " + maxsucc);
