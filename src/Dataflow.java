@@ -162,6 +162,16 @@ class Dataflow {
 		long begin;
 		long end;
 		worklist = new LinkedList<Vertex>();
+		
+
+		System.out.println("computing liveness...");
+
+		begin = System.nanoTime();
+		for (i = 0; i < vertex.length; ++i) {
+			worklist.addLast(vertex[i]);
+			vertex[i].listed = true;
+		}
+		
 		Monitor mon = new Monitor(worklist);
 
 		Thread remThread = new Thread() {
@@ -179,19 +189,11 @@ class Dataflow {
 				}
 			}
 		};
-
-		System.out.println("computing liveness...");
-
-		begin = System.nanoTime();
-		for (i = 0; i < vertex.length; ++i) {
-			worklist.addLast(vertex[i]);
-			vertex[i].listed = true;
-		}
 		// run thread
 		remThread.start();
-		remThread.run();
+	//	remThread.run();
 		comThread.start();
-		comThread.run();
+	//	comThread.run();
 
 		end = System.nanoTime();
 
@@ -223,7 +225,14 @@ class Dataflow {
 		maxsucc = 4;
 		nactive = 100;
 		nthread = 4;
-		print = 0 != 0;
+		print = true;
+		
+//		nsym = 100;
+//		nvertex = 10;
+//		maxsucc = 4;
+//		nactive = 10;
+//		nthread = 4;
+//		print = true;
 
 		System.out.println("nsym = " + nsym);
 		System.out.println("nvertex = " + nvertex);

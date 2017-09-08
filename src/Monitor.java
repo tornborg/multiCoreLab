@@ -9,10 +9,14 @@ public class Monitor {
 	}
 
 	public synchronized void removeWork() {
-		while (!worklist.isEmpty()) {
+		while (worklist.isEmpty()) {
+			try {
+				wait();
+			} catch (InterruptedException e) {
+			}			
+		}
 			v = worklist.remove();
 			v.listed = false;
-		}
 	}
 
 	public synchronized void callCompute() {
