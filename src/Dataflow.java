@@ -1,3 +1,4 @@
+package multi;
 
 import java.util.Iterator;
 import java.util.ListIterator;
@@ -41,7 +42,7 @@ class Vertex {
 		def = new BitSet();
 	}
 
-	void computeIn(LinkedList<Vertex> worklist) {
+	synchronized void computeIn(LinkedList<Vertex> worklist) {
 		int i;
 		BitSet old;
 		Vertex v;
@@ -71,6 +72,7 @@ class Vertex {
 				if (!v.listed) {
 					worklist.addLast(v);
 					v.listed = true;
+					notifyAll();
 				}
 			}
 		}
@@ -161,6 +163,7 @@ class Dataflow {
 		LinkedList<Vertex> worklist;
 		long begin;
 		long end;
+		boolean alive = true;
 		worklist = new LinkedList<Vertex>();
 		
 
@@ -171,12 +174,11 @@ class Dataflow {
 			worklist.addLast(vertex[i]);
 			vertex[i].listed = true;
 		}
-		
-		Monitor mon = new Monitor(worklist);
+		Monitor mon = new Monitor(worklist, begin);
 
 		Thread remThread = new Thread() {
 			public void run() {
-				while (true) {
+				while (mon.alive) {
 					mon.removeWork();
 				}
 			}
@@ -184,23 +186,31 @@ class Dataflow {
 
 		Thread comThread = new Thread() {
 			public void run() {
-				while (true) {
+				while (mon.alive) {
 					mon.callCompute();
-					
 				}
 			}
 		};
 		
 		// run thread
 		remThread.start();
-	//	remThread.run();
 		comThread.start();
-	//	comThread.run();
 		
-		end = System.nanoTime();
-		System.out.println("penis");
-		System.out.println(mon.printCount());
-		System.out.println("T = " + (end - begin) / 1e9 + " s");
+		while(!(mon.bufferlist.isEmpty() && mon.worklist.isEmpty())){
+//			System.out.println("Buffer: " + mon.bufferlist.size());
+//			System.out.println("Work: " + mon.worklist.size());
+		}
+//		mon.finish();
+//		
+//		end = System.nanoTime();
+//		
+//		remThread.interrupt();
+//		comThread.interrupt();
+		
+		System.out.println("CompThread: " + mon.compCount);
+		System.out.println("RemoThread: " + mon.remCount);
+//		
+//		System.out.println("T = " + (end - begin) / 1e9 + " s");
 	}
 
 	public static void main(String[] args) {
@@ -224,19 +234,19 @@ class Dataflow {
 		// nthread = Integer.parseInt(args[4]);
 		// print = Integer.parseInt(args[5]) != 0;
 
-//		nsym = 10000;
-//		nvertex = 1000;
-//		maxsucc = 4;
-//		nactive = 100;
-//		nthread = 4;
-//		print = true;
-		
-		nsym = 100;
-		nvertex = 10;
+		nsym = 10000;
+		nvertex = 1000;
 		maxsucc = 4;
-		nactive = 10;
+		nactive = 100;
 		nthread = 4;
 		print = false;
+		
+//		nsym = 100;
+//		nvertex = 10;
+//		maxsucc = 4;
+//		nactive = 10;
+//		nthread = 4;
+//		print = false;
 
 		System.out.println("nsym = " + nsym);
 		System.out.println("nvertex = " + nvertex);
@@ -250,11 +260,11 @@ class Dataflow {
 
 		generateCFG(vertex, maxsucc, r);
 		generateUseDef(vertex, nsym, nactive, r);
-		if(nvertex >= 40){
+//		if(nvertex >= 40){
 		liveness(vertex);
-		}else{
-		odf.liveness(vertex);
-		}
+//		}else{
+//		odf.liveness(vertex);
+//		}
 		if (print)
 			for (i = 0; i < vertex.length; ++i)
 				vertex[i].print();

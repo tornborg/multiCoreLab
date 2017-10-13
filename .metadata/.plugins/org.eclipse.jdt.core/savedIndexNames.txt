@@ -1,0 +1,2 @@
+INDEX VERSION 1.129+C:\Users\anton\git\multiCoreLab\.metadata\.plugins\org.eclipse.jdt.core
+3376274743.index
